@@ -7,7 +7,7 @@
 <title>product Page</title>
 </head>
 <body>
-<h2>This is a product page </h2>Secondly Changed content 
+<h2>This is a product page </h2>Secon  dly Changed content 
 <table>
 	<tr>
 		<td>
