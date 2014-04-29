@@ -4,6 +4,6 @@ CREATE TABLE p_c (
     category   	INTEGER REFERENCES category (ID) NOT NULL
 );
 
-INSERT INTO students (product, category) values (1, 1);
+INSERT INTO p_c (product, category) values (1, 1);
 
 
