@@ -7,7 +7,7 @@
 <title>product Page</title>
 </head>
 <body>
-<h2>This is a product page here</h2>
+<h2>This is a product page </h2>https://github.com/CSE135sb/135Spring.git
 <table>
 	<tr>
 		<td>
