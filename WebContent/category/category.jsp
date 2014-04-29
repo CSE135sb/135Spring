@@ -8,7 +8,9 @@
 </head>
 <body>
 <h2>This is a category page</h2>
-
+<table>
+	<tr>
+		<td>
             <%@ page import="java.sql.*"%>
             <%-- -------- Open Connection Code -------- --%>
             <%
@@ -65,11 +67,12 @@
                     // Create the prepared statement and use it to
                     // UPDATE category values in the category table.
                     pstmt = conn
-                        .prepareStatement("UPDATE category SET c_name = ?, description = ? WHERE c_name = ?");
+                        .prepareStatement("UPDATE category SET c_name = ?, description = ? WHERE id = ?");
 
+                    
                     pstmt.setString(1, request.getParameter("c_name"));
                     pstmt.setString(2, request.getParameter("description"));
-                    pstmt.setString(3, request.getParameter("c_name"));
+                    pstmt.setInt(3, Integer.parseInt(request.getParameter("id")));
                     
                     int rowCount = pstmt.executeUpdate();
 
@@ -90,9 +93,9 @@
                     // Create the prepared statement and use it to
                     // DELETE students FROM the Students table.
                     pstmt = conn
-                        .prepareStatement("DELETE FROM category WHERE c_name = ?");
+                        .prepareStatement("DELETE FROM category WHERE id = ?");
 
-                    pstmt.setString(1, request.getParameter("c_name"));
+                    pstmt.setInt(1, Integer.parseInt(request.getParameter("id")));
                     int rowCount = pstmt.executeUpdate();
 
                     // Commit transaction
@@ -114,12 +117,13 @@
             <!-- Add an HTML table header row to format the results -->
             <table border="1">
             <tr>
+            	<th>ID</th>
                 <th>Category Name</th>
                 <th>Description</th>
             </tr>
 
             <tr>
-                <form action="category/category.jsp" method="POST">
+                <form action="category.jsp" method="POST">
                     <input type="hidden" name="action" value="insertCategory"/>
                     <th>&nbsp;</th>
                     <th><input value="" name="c_name" size="10"/></th>
@@ -135,13 +139,13 @@
             %>
 
             <tr>
-                <form action="category/category.jsp" method="POST">
+                <form action="category.jsp" method="POST">
                     <input type="hidden" name="action" value="updateCategory"/>
-                    <input type="hidden" name="c_name" value="<%=rs.getString("c_name")%>"/>
+                    <input type="hidden" name="id" value="<%=rs.getInt("id")%>"/>
 
-                <%-- Get the c_name --%>
+				<%-- Get the id --%>
                 <td>
-                    <%=rs.getString("c_name")%>
+                    <%=rs.getInt("id")%>
                 </td>
 
                 <%-- Get the c_name --%>
@@ -154,13 +158,15 @@
                     <input value="<%=rs.getString("description")%>" name="description" size="15"/>
                 </td>
 
-
                 <%-- Button --%>
                 <td><input type="submit" value="Update"></td>
+                
                 </form>
-                <form action="category/category.jsp" method="POST">
+                
+                
+                <form action="category.jsp" method="POST">
                     <input type="hidden" name="action" value="deleteCategory"/>
-                    <input type="hidden" value="<%=rs.getString("c_name")%>" name="c_name"/>
+                    <input type="hidden" value="<%=rs.getInt("id")%>" name="id"/>
                     <%-- Button --%>
                 <td><input type="submit" value="Delete"/></td>
                 </form>
@@ -212,7 +218,10 @@
                 }
             }
             %>
-
+			</table>
+        </td>
+    </tr>
+</table>
 
 </body>
 </html>
