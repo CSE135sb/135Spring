@@ -43,7 +43,8 @@
                     String username = request.getParameter("username");
                     stmt = conn.createStatement();
                     rs = stmt.executeQuery("SELECT * FROM users WHERE username = " + username);
-					if (rs != null){
+                    //if user does not exist, insert it into user table
+					if (rs == null){
 						pstmt = conn
 						.prepareStatement("INSERT INTO users (username, role, age, state) VALUES (?, ?, ?, ?)");
 						pstmt.setString(1, username);
@@ -51,6 +52,7 @@
 						pstmt.setString(3, request.getParameter("age"));
 						pstmt.setString(4, request.getParameter("state"));
 					}
+                    // else report user exists
                     int rowCount = pstmt.executeUpdate();
 
                     // Commit transaction

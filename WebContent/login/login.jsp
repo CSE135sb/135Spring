@@ -4,7 +4,7 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
-<title>Sign Up Page</title>
+<title>Login Page</title>
 </head>
 <body>
 <h2>Login to our super functional based pages</h2>
@@ -43,13 +43,13 @@
                     stmt = conn.createStatement();
                     
                     rs = stmt.executeQuery("SELECT * FROM users WHERE username = " + username);
-					if (rs != null){
+					if (rs == null){
 						session.setAttribute("username",username);
 						response.sendRedirect("/ownermain");
 					}
                     int rowCount = pstmt.executeUpdate();
 
-                    // Commit transaction
+                     
                     conn.commit();
                     conn.setAutoCommit(true);
                 }
@@ -74,7 +74,7 @@
                 throw new RuntimeException(e);
             }
             finally {
-                // Release resources in a finally block in reverse-order of
+                // Release resources in a finally block in reverse-orde: syntax error at end of input
                 // their creation
 
                 if (rs != null) {
@@ -108,7 +108,7 @@
 
 
 
-<form action="signup/signup.jsp" method="POST">
+<form action="login/login.jsp" method="POST">
     <input type="hidden" name="action" value="loginSubmit"/>
 	<input name="username" type="text"/>
 	<br>

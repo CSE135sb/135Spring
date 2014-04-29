@@ -24,8 +24,8 @@
 	</servlet>
 
 	<servlet>
-		<servlet-name>ownermain</servlet-name>
-		<jsp-file>/ownermain/ownermain.jsp</jsp-file>
+		<servlet-name>category</servlet-name>
+		<jsp-file>/category/category.jsp</jsp-file>
 	</servlet>
 
 	<servlet-mapping>
@@ -39,8 +39,8 @@
 	</servlet-mapping>
 	
 	<servlet-mapping>
-		<servlet-name>ownermain</servlet-name>
-		<url-pattern>/ownermain</url-pattern>
+		<servlet-name>category</servlet-name>
+		<url-pattern>/category</url-pattern>
 	</servlet-mapping>
 
 	<welcome-file-list>
