@@ -7,7 +7,7 @@
 <title>product Page</title>
 </head>
 <body>
-<h2>This is a product page hahaha</h2>
+<h2>This is a product page hahaha-----</h2>
 <table>
 	<tr>
 		<td>
