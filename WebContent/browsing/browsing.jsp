@@ -20,9 +20,9 @@
 		<tr>
 			<!-- <form action="/135Spring/product/product.jsp" method="POST"> -->
 			<form action="browsing.jsp" method="POST">
-				<input type="hidden" name="action" value="searchSubmit" /> <input
-					value="" name="searchInput" size="15" /> <input type="submit"
-					value="Search" />
+				<input type="hidden" name="action" value="searchSubmit" /> 
+				<input value="" name="searchInput" size="15" /> 
+				<input type="submit" value="Search" />
 			</form>
 		</tr>
 
@@ -104,7 +104,7 @@
 					// Create the prepared statement and use it to
 					// INSERT product values INTO the product table.
 					d_pstmt = conn
-							.prepareStatement("SELECT * FROM products WHERE category_id = ?");
+							.prepareStatement("SELECT * FROM products WHERE category_id = 1");
 
 					d_pstmt.setInt(1, Integer.parseInt(request.getParameter("c_id")));
 					//System.out.println("c_id is: " + Integer.parseInt(request.getParameter("c_id")));
@@ -178,6 +178,7 @@
 				<form action="browsing.jsp" method="POST">
 					<input type="hidden" name="action" value="orderProduct" /> <input
 						type="hidden" value="<%=rs.getInt("id")%>" name="id" />
+					<input value="<%=rs.getString("p_name")%>" name="p_name" size="15" /> 
 					<%-- Button --%>
 					<td><input type="submit" value="Add to Cart" /></td>
 				</form>
