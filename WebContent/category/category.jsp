@@ -41,7 +41,7 @@
                     // Create the prepared statement and use it to
                     // INSERT category values INTO the category table.
                     pstmt = conn
-                    .prepareStatement("INSERT INTO category (c_name, description) VALUES (?, ?)");
+                    .prepareStatement("INSERT INTO categories (c_name, description) VALUES (?, ?)");
 
                     //pstmt.setInt(1, Integer.parseInt(request.getParameter("pid")));
                     //pstmt.setString(2, request.getParameter("first"));
@@ -67,7 +67,7 @@
                     // Create the prepared statement and use it to
                     // UPDATE category values in the category table.
                     pstmt = conn
-                        .prepareStatement("UPDATE category SET c_name = ?, description = ? WHERE id = ?");
+                        .prepareStatement("UPDATE categories SET c_name = ?, description = ? WHERE id = ?");
 
                     
                     pstmt.setString(1, request.getParameter("c_name"));
@@ -93,7 +93,7 @@
                     // Create the prepared statement and use it to
                     // DELETE students FROM the Students table.
                     pstmt = conn
-                        .prepareStatement("DELETE FROM category WHERE id = ?");
+                        .prepareStatement("DELETE FROM categories WHERE id = ?");
 
                     pstmt.setInt(1, Integer.parseInt(request.getParameter("id")));
                     int rowCount = pstmt.executeUpdate();
@@ -111,7 +111,7 @@
 
                 // Use the created statement to SELECT
                 // the student attributes FROM the Student table.
-                rs = statement.executeQuery("SELECT * FROM category");
+                rs = statement.executeQuery("SELECT * FROM categories");
             %>
             
             <!-- Add an HTML table header row to format the results -->

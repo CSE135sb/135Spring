@@ -35,7 +35,7 @@
             Connection conn = null;
             PreparedStatement pstmt = null;
             ResultSet rs = null;
-            ResultSet c_rs = null;
+            
             ResultSet d_rs = null;
             Statement stmt = null;
 
@@ -52,72 +52,62 @@
             <%-- -------------- -------------- --%>
 			<%
 			// Create the statement
-            Statement c_statement = conn.createStatement();
+            //Statement c_statement = conn.createStatement();
 			PreparedStatement d_pstmt = null;
 			PreparedStatement s_pstmt = null;
 			String action = request.getParameter("action");
 			
 			
-				
-			
 			%>
-            
-            
-            
-			
-			
-            
-            <%-- -------- SELECT Statement Code -------- --%>
-            <%
-
-                // Use the created statement to SELECT
-                // the student attributes FROM the Student table.
-                c_rs = c_statement.executeQuery("SELECT * FROM categories");
-            %>
-			
-			
+            	
 			
 			<%-- display category table on the side --%>
+			<%@ include file="/display_category/display_category.jsp" %>
+			<%-- display category table on the side --%>
+
+	<%-- -------- SELECT Statement Code -------- --%>
+	<%
+		// Use the created statement to SELECT
+			// the student attributes FROM the Student table.
+			Statement c_statement = c_conn.createStatement();
+			c_rs = c_statement.executeQuery("SELECT * FROM categories");
+	%>
+
+	<table border="1">
+		<tr>
+			<th>Category</th>
+			<th>ID</th>
+		</tr>
+
+
+
+		<%-- -------- Iteration Code -------- --%>
+		<%
+			// Iterate over the ResultSet
+				while (c_rs != null && c_rs.next()) {
+		%>
+
+		<tr>
+			<%-- Get the first name --%>
+			<td><%=c_rs.getString("c_name")%></td>
+
+			<%-- Get the id --%>
+			<td><%=c_rs.getInt("id")%></td>
+
+			<form action="/135Spring/product/product.jsp" method="POST">
+				<input type="hidden" name="action" value="displayCategory" /> <input
+					type="hidden" name="c_id" value="<%=c_rs.getInt("id")%>" />
+				<td><input type="submit" value="Display" /></td>
+			</form>
+
+		</tr>
+
+
+		<%
 			
-		<table border="1">
-            <tr>
-            	<th>Category</th>
-                <th>ID</th>
-            </tr>
-
-            
-
-            <%-- -------- Iteration Code -------- --%>
-           <%
-                // Iterate over the ResultSet
-                while (c_rs.next()) {
-            %>
-
-            <tr>
-                <%-- Get the first name --%>
-                <td>
-                    <%=c_rs.getString("c_name")%>
-                </td>
-                
-                <%-- Get the id --%>
-                <td>
-                    <%=c_rs.getInt("id")%>
-                </td>
-                
-                	<form action="product.jsp" method="POST">
-                    	<input type="hidden" name="action" value="displayCategory"/>
-                    	<input type="hidden" name="id" value="<%=c_rs.getInt("id")%>"/>
-                    	<td><input type="submit" value="Display"/></td>
-                	</form>
-
-            </tr>
-                     
-            
-            <%
-                }
-            %>
-            
-		</table>
+				}
+		%>
+		
 		
 			<%-- -------- Search Code -------- --%>
             <%
@@ -224,7 +214,8 @@
 
             <%-- -------- SELECT Statement Code (for different feature)-------- --%>
             <%
-			System.out.println("action is: " + action.toString());
+            if(action != null)
+				System.out.println("action is: " + action.toString());
 
 			if (action != null && action.equals("displayCategory")) {
 
@@ -246,9 +237,14 @@
                 conn.commit();
                 conn.setAutoCommit(true);
             }
-			// display all products
-			else if( action != null && !(action.equals("displayCategory")) && !(action.equals("searchSubmit")))
+/* 			// display all products
+			if( action != null && !(action.equals("displayCategory")) && !(action.equals("searchSubmit")))
             {
+				
+            } */
+			else
+			{
+				System.out.println("action is null. else");
 				System.out.println("in all products mode");
                 // Create the statement
                 Statement statement = conn.createStatement();
@@ -256,10 +252,7 @@
                 // Use the created statement to SELECT
                 // the student attributes FROM the Student table.
                 rs = statement.executeQuery("SELECT * FROM products");
-            }
-			else
-			{
-				System.out.println("else");
+				
 			}
             %>
             
@@ -289,7 +282,7 @@
      
             <%
                 // Iterate over the ResultSet for insert, update, delete
-                while (rs.next()) {
+                while (rs != null && rs.next()) {
             %>
 
             <tr>
@@ -346,9 +339,11 @@
                 if (rs != null)
                 	rs.close();
             
-         		// Close the c_ResultSet
             	if (c_rs != null)
-            		c_rs.close();
+					c_rs.close();
+
+				if (c_conn != null)
+					c_conn.close(); 
 
                 // Close the Statement
                 //statement.close();
@@ -372,12 +367,8 @@
                     } catch (SQLException e) { } // Ignore
                     rs = null;
                 }
-                if (c_rs != null) {
-                    try {
-                    	c_rs.close();
-                    } catch (SQLException e) { } // Ignore
-                    c_rs = null;
-                }               
+                
+                               
                 if (pstmt != null) {
                     try {
                         pstmt.close();
