@@ -40,11 +40,11 @@
 			// Begin transaction
 			conn.setAutoCommit(false);
 
-			String input = request.getParameter("pname");
+			String input = request.getParameter("p_name");
 			Statement s_stmt = conn.createStatement();
 
 			pstmt = conn
-					.prepareStatement("SELECT * FROM products WHERE p_name = " + input);
+					.prepareStatement("SELECT * FROM products WHERE p_name = '" + input + "'");
 
 			//System.out.println(searchInput);
 

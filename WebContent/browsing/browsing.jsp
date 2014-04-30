@@ -27,10 +27,30 @@
 		</tr>
 
 	</table>
+	
+	<%-- -------- Open Connection Code -------- --%>
+		<%
+			Connection conn = null;
+			PreparedStatement pstmt = null;
+			ResultSet rs = null;
+			Statement stmt = null;
+			PreparedStatement d_pstmt = null;
+			String action = request.getParameter("action");
+
+			try {
+				// Registering Postgresql JDBC driver with the DriverManager
+				Class.forName("org.postgresql.Driver");
+				// Open a connection to the database using DriverManager
+				conn = DriverManager
+						.getConnection("jdbc:postgresql://localhost/cse135?"
+								+ "user=postgres&password=postgres");
+		%>
+	
+	
 
 	<%-- display category table on the side --%>
 	<%@ include file="/display_category/display_category.jsp"%>
-	<%-- display category table on the side --%>
+
 	
 	<%-- -------- SELECT Statement Code -------- --%>
 	<%
@@ -74,24 +94,8 @@
 			}
 		%>
 
-
-		<%-- -------- Open Connection Code -------- --%>
-		<%
-			Connection conn = null;
-			PreparedStatement pstmt = null;
-			ResultSet rs = null;
-			Statement stmt = null;
-			PreparedStatement d_pstmt = null;
-			String action = request.getParameter("action");
-
-			try {
-				// Registering Postgresql JDBC driver with the DriverManager
-				Class.forName("org.postgresql.Driver");
-				// Open a connection to the database using DriverManager
-				conn = DriverManager
-						.getConnection("jdbc:postgresql://localhost/cse135?"
-								+ "user=postgres&password=postgres");
-		%>
+	</table>
+		
 
 		<%-- -------- display category Code -------- --%>
 		<%
@@ -104,10 +108,9 @@
 					// Create the prepared statement and use it to
 					// INSERT product values INTO the product table.
 					d_pstmt = conn
-							.prepareStatement("SELECT * FROM products WHERE category_id = 1");
+							.prepareStatement("SELECT * FROM products WHERE category_id = ?");
 
 					d_pstmt.setInt(1, Integer.parseInt(request.getParameter("c_id")));
-					//System.out.println("c_id is: " + Integer.parseInt(request.getParameter("c_id")));
 
 					rs = d_pstmt.executeQuery();
 
@@ -159,7 +162,7 @@
 				<td><%=rs.getInt("id")%></td>
 
 				<%-- Get the p_name --%>
-				<td><input value="<%=rs.getString("p_name")%>" name="p_name"
+			 	<td><input value="<%=rs.getString("p_name")%>" name="p_name"
 					size="15" /></td>
 
 				<%-- Get the sku --%>
@@ -175,10 +178,10 @@
 					size="15" /></td>
 
 
-				<form action="browsing.jsp" method="POST">
+				<form action="/135Spring/order/order.jsp" method="POST">
 					<input type="hidden" name="action" value="orderProduct" /> <input
 						type="hidden" value="<%=rs.getInt("id")%>" name="id" />
-					<input value="<%=rs.getString("p_name")%>" name="p_name" size="15" /> 
+					<input type="hidden" value="<%=rs.getString("p_name")%>" name="p_name" /> 
 					<%-- Button --%>
 					<td><input type="submit" value="Add to Cart" /></td>
 				</form>
@@ -233,6 +236,6 @@
 				}
 			}
 		%>
-	
+
 </body>
 </html>

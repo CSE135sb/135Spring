@@ -13,8 +13,9 @@
 <table>
 
 		<tr>
-			<form action="product.jsp" method="POST">
-				<input type="hidden" name="action" value="searchSubmit" /> 
+			<form search="product.jsp" method="POST">
+				<input type="hidden" name="search" value="searchSubmit" /> 
+				<input type="hidden" name="categoryFilter" value="<%= request.getParameter("c_id") %>" />
 				<input value="" name="searchInput" size="15"/>
 				<input type="submit" value="Search" />
 			</form>
@@ -55,7 +56,10 @@
             //Statement c_statement = conn.createStatement();
 			PreparedStatement d_pstmt = null;
 			PreparedStatement s_pstmt = null;
+			
 			String action = request.getParameter("action");
+			String display = request.getParameter("display");
+			String search = request.getParameter("search");
 			
 			
 			%>
@@ -95,8 +99,9 @@
 			<td><%=c_rs.getInt("id")%></td>
 
 			<form action="/135Spring/product/product.jsp" method="POST">
-				<input type="hidden" name="action" value="displayCategory" /> <input
-					type="hidden" name="c_id" value="<%=c_rs.getInt("id")%>" />
+				<input type="hidden" name="display" value="displayCategory" /> 
+				<input type="hidden" name="c_id" value="<%=c_rs.getInt("id")%>" />
+				<input type="hidden" name="search_text" value="<%=request.getParameter("searchInput") %>" />
 				<td><input type="submit" value="Display" /></td>
 			</form>
 
@@ -109,30 +114,7 @@
 		%>
 		
 		
-			<%-- -------- Search Code -------- --%>
-            <%
-                
-                // Check if an insertion is requested
-                if (action != null && action.equals("searchSubmit")) {
-
-           System.out.println("inside search block");
-                	// Begin transaction
-                    conn.setAutoCommit(false);
-                	
-                	String searchInput = request.getParameter("searchInput");
-                    Statement s_stmt = conn.createStatement();
-                   
-                    s_pstmt = conn
-                            .prepareStatement("SELECT * FROM products WHERE p_name LIKE '%" + searchInput + "%'");
-
-               //System.out.println(searchInput);
-                            
-                    rs = s_pstmt.executeQuery();
-                    
-                    conn.commit();
-                    conn.setAutoCommit(true);
-                }
-            %>
+			
 
      
             <%-- -------- INSERT Code -------- --%>
@@ -140,25 +122,48 @@
                 
                 // Check if an insertion is requested
                 if (action != null && action.equals("insertProduct")) {
-
-                    // Begin transaction
-                    conn.setAutoCommit(false);
-
-                    // Create the prepared statement and use it to
-                    // INSERT product values INTO the product table.
-                    pstmt = conn
-                    .prepareStatement("INSERT INTO products (p_name, sku, category_id, price) VALUES (?, ?, ?, ?)");
-
-                    pstmt.setString(1, request.getParameter("p_name"));
-                    pstmt.setInt(2, Integer.parseInt(request.getParameter("sku")));
-                    pstmt.setInt(3, Integer.parseInt(request.getParameter("category_id")));
-                    pstmt.setInt(4, Integer.parseInt(request.getParameter("price")));
-                    
-                    int rowCount = pstmt.executeUpdate();
-
-                    // Commit transaction
-                    conn.commit();
-                    conn.setAutoCommit(true);
+                	
+       System.out.println("in insert block.");
+                	double price;
+                	
+                	stmt = conn.createStatement();
+                	rs = stmt.executeQuery("SELECT * FROM products WHERE sku = " + request.getParameter("sku"));
+                	
+                	try
+                	{
+                		price = Double.parseDouble(request.getParameter("price"));
+                	}
+                	catch (NumberFormatException e)
+                	{
+                		price = -1.0;
+                	}
+                	
+                	if( price < 0 || request.getParameter("p_name") == "" || rs.next() )
+                	{
+                		out.println("failed to insert a new product.");
+                		rs = null;
+                	}
+                	
+                	else {
+	                    // Begin transaction
+	                    conn.setAutoCommit(false);
+	
+	                    // Create the prepared statement and use it to
+	                    // INSERT product values INTO the product table.
+	                    pstmt = conn
+	                    .prepareStatement("INSERT INTO products (p_name, sku, category_id, price) VALUES (?, ?, ?, ?)");
+	
+	                    pstmt.setString(1, request.getParameter("p_name"));
+	                    pstmt.setInt(2, Integer.parseInt(request.getParameter("sku")));
+	                    pstmt.setInt(3, Integer.parseInt(request.getParameter("category_id")));
+	                    pstmt.setInt(4, Integer.parseInt(request.getParameter("price")));
+	                    
+	                    int rowCount = pstmt.executeUpdate();
+	
+	                    // Commit transaction
+	                    conn.commit();
+	                    conn.setAutoCommit(true);
+                	}
                 }
             %>
             
@@ -166,27 +171,50 @@
             <%
                 // Check if an update is requested
                 if (action != null && action.equals("updateProduct")) {
-
-                    // Begin transaction
-                    conn.setAutoCommit(false);
-
-                    // Create the prepared statement and use it to
-                    // UPDATE product values in the product table.
-                    pstmt = conn
-                        .prepareStatement("UPDATE products SET p_name = ?, sku = ?, category_id = ?, price = ? WHERE id = ?");
-
-                    
-                    pstmt.setString(1, request.getParameter("p_name"));
-                    pstmt.setInt(2, Integer.parseInt(request.getParameter("sku")));
-                    pstmt.setInt(3, Integer.parseInt(request.getParameter("category_id")));
-                    pstmt.setInt(4, Integer.parseInt(request.getParameter("price")));
-                    pstmt.setInt(5, Integer.parseInt(request.getParameter("id")));
-                    
-                    int rowCount = pstmt.executeUpdate();
-
-                    // Commit transaction
-                    conn.commit();
-                    conn.setAutoCommit(true);
+                	
+    System.out.println("in update block.");
+                	double price;
+                	
+                	stmt = conn.createStatement();
+                	rs = stmt.executeQuery("SELECT * FROM products WHERE sku = " + request.getParameter("sku") + "AND id != " 
+                	+ request.getParameter("id"));
+                	
+                	try
+                	{
+                		price = Double.parseDouble(request.getParameter("price"));
+                	}
+                	catch (NumberFormatException e)
+                	{
+                		price = -1.0;
+                	}
+                	
+                	if( price < 0 || request.getParameter("p_name") == "" || rs.next() )
+                	{
+                		out.println("failed to insert a new product.");
+                		rs = null;
+                	}
+                	else {
+	                    // Begin transaction
+	                    conn.setAutoCommit(false);
+	
+	                    // Create the prepared statement and use it to
+	                    // UPDATE product values in the product table.
+	                    pstmt = conn
+	                        .prepareStatement("UPDATE products SET p_name = ?, sku = ?, category_id = ?, price = ? WHERE id = ?");
+				                   
+	                    
+	                    pstmt.setString(1, request.getParameter("p_name"));
+	                    pstmt.setInt(2, Integer.parseInt(request.getParameter("sku")));
+	                    pstmt.setInt(3, Integer.parseInt(request.getParameter("cid")));
+	                    pstmt.setInt(4, Integer.parseInt(request.getParameter("price")));
+	                    pstmt.setInt(5, Integer.parseInt(request.getParameter("id")));
+	                    
+	                    int rowCount = pstmt.executeUpdate();
+	
+	                    // Commit transaction
+	                    conn.commit();
+	                    conn.setAutoCommit(true);
+                	}
                 }
             %>
             
@@ -216,35 +244,70 @@
             <%
             if(action != null)
 				System.out.println("action is: " + action.toString());
+            
+            if(search != null)
+				System.out.println("search is: " + search.toString());
+            
+            if(display != null)
+				System.out.println("display is: " + display.toString());
 
-			if (action != null && action.equals("displayCategory")) {
+			// DISPLAY
+			if (display != null && display.equals("displayCategory")) {
 
 	System.out.println("in display mode");
 				// Begin transaction
                 conn.setAutoCommit(false);
+				
+				String searchText = request.getParameter("search_text");
+				
+	System.out.println("search_text is: " + searchText );
+	
+				//without search text
+				if(searchText.equals("null"))
+				{
+					d_pstmt = conn
+		                	.prepareStatement("SELECT * FROM products WHERE category_id = ?");
 
-                // Create the prepared statement and use it to
-                // INSERT product values INTO the product table.
-                d_pstmt = conn
-                .prepareStatement("SELECT * FROM products WHERE category_id = 1");
+		                	d_pstmt.setInt(1, Integer.parseInt(request.getParameter("c_id")));	
+				}
+				//with search text
+				else
+				{
+                	d_pstmt = conn
+                	.prepareStatement("SELECT * FROM products WHERE category_id = ? AND p_name = '" + searchText + "'");
 
-                //d_pstmt.setInt(1, Integer.parseInt(request.getParameter("c_id")));
-   //System.out.println("c_id is: " + Integer.parseInt(request.getParameter("c_id")));
-                
+                	d_pstmt.setInt(1, Integer.parseInt(request.getParameter("c_id")));
+				}
                 rs = d_pstmt.executeQuery();
 
                 // Commit transaction
                 conn.commit();
                 conn.setAutoCommit(true);
             }
-/* 			// display all products
-			if( action != null && !(action.equals("displayCategory")) && !(action.equals("searchSubmit")))
+ 			
+ 			else if( search != null && (search.equals("searchSubmit")))
             {
-				
-            } */
-			else
+ 		System.out.println("inside search block");
+            	// Begin transaction
+                conn.setAutoCommit(false);
+            	
+            	String searchInput = request.getParameter("searchInput");
+                Statement s_stmt = conn.createStatement();
+               
+                s_pstmt = conn
+                        .prepareStatement("SELECT * FROM products WHERE p_name LIKE '%" + searchInput + "%'");
+
+         System.out.println("search input is: " + searchInput);
+                        
+                rs = s_pstmt.executeQuery();
+                
+                conn.commit();
+                conn.setAutoCommit(true);
+            } 
+			// display all products
+			else 
 			{
-				System.out.println("action is null. else");
+				
 				System.out.println("in all products mode");
                 // Create the statement
                 Statement statement = conn.createStatement();
@@ -307,7 +370,7 @@
                 
                 <%-- Get the category_id --%>
                 <td>
-                    <input value="<%=rs.getInt("category_id")%>" name="sku" size="15"/>
+                    <input value="<%=rs.getInt("category_id")%>" name="cid" size="15"/>
                 </td>
                 
                 <%-- Get the price --%>
