@@ -119,7 +119,7 @@
                     ResultSet delete = null;
                     Vector<Integer> v = new Vector<Integer>();
                     
-                    delete = test.executeQuery("");
+                    delete = test.executeQuery("SELECT c.id FROM categories c, products p WHERE c.id = p.category_id");
                     
                     while(delete.next())
                     {
@@ -135,20 +135,25 @@
                     	}
                     }
                     
-                    
-
-                    // Create the prepared statement and use it to
-                    // DELETE students FROM the Students table.
-                    pstmt = conn
-                        .prepareStatement("DELETE FROM categories WHERE id = ?");
-
-                    pstmt.setInt(1, c_id);
-                    int rowCount = pstmt.executeUpdate();
-
-                    // Commit transaction
-                    conn.commit();
-                    conn.setAutoCommit(true);
-                    response.sendRedirect("/135Spring/category/category.jsp");
+                    if(referenced)
+                    {
+                    	out.println("Cannot delete this category. Someone just added a product to it. ");
+                    }
+                    else
+                    { 
+	                    // Create the prepared statement and use it to
+	                    // DELETE students FROM the Students table.
+	                    pstmt = conn
+	                        .prepareStatement("DELETE FROM categories WHERE id = ?");
+	
+	                    pstmt.setInt(1, c_id);
+	                    int rowCount = pstmt.executeUpdate();
+	
+	                    // Commit transaction
+	                    conn.commit();
+	                    conn.setAutoCommit(true);
+	                    response.sendRedirect("/135Spring/category/category.jsp");
+                    }
                 }
             %>        
 
@@ -211,13 +216,41 @@
                 
                 </form>
                 
+                <%
+                	//do checking. if category has products referenced, hide the delete button
+                	Statement test = conn.createStatement();
+               	 	ResultSet delete = null;
+                	Vector<Integer> v = new Vector<Integer>();
+                	
+					delete = test.executeQuery("SELECT c.id FROM categories c, products p WHERE c.id = p.category_id");
+                    
+                    while(delete.next())
+                    {
+                    	v.add(delete.getInt("id"));
+                    }
+                    
+                    boolean referenced = false;
+                    for(int i = 0; i < v.size(); i++)
+                    {
+                    	if(v.get(i) == rs.getInt("id"))
+                    	{
+                    		referenced = true;
+                    	}
+                    }
+                    
+                    //if its not referenced, display Delete button
+                    if( !referenced )
+                    {
+                %>
+	                <form action="category.jsp" method="POST">
+	                    <input type="hidden" name="action" value="deleteCategory"/>
+	                    <input type="hidden" value="<%=rs.getInt("id")%>" name="id"/>
+	                    <%-- Button --%>
+	                <td><input type="submit" value="Delete"/></td>
+	                </form>
                 
-                <form action="category.jsp" method="POST">
-                    <input type="hidden" name="action" value="deleteCategory"/>
-                    <input type="hidden" value="<%=rs.getInt("id")%>" name="id"/>
-                    <%-- Button --%>
-                <td><input type="submit" value="Delete"/></td>
-                </form>
+                <% } %>	
+                
             </tr>
 
             <%
