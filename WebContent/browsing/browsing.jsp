@@ -280,5 +280,7 @@
 			}
 		%>
 
+<a href="/135Spring/product/product.jsp" > Product Page </a>
+
 </body>
 </html>

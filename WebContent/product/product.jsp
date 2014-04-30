@@ -155,6 +155,7 @@
 	                    // Commit transaction
 	                    conn.commit();
 	                    conn.setAutoCommit(true);
+	                    response.sendRedirect("product.jsp");
                 	}
                 }
             %>
@@ -206,6 +207,7 @@
 	                    // Commit transaction
 	                    conn.commit();
 	                    conn.setAutoCommit(true);
+	                    response.sendRedirect("product.jsp");
                 	}
                 }
             %>
@@ -229,6 +231,7 @@
                     // Commit transaction
                     conn.commit();
                     conn.setAutoCommit(true);
+                    response.sendRedirect("product.jsp");
                 }
             %>        
 
@@ -454,6 +457,10 @@
         </td>
     </tr>
 </table>
+
+<a href="/135Spring/browsing/browsing.jsp" > Product Browsing Page </a>
+<br>
+<a href="/135Spring/category/category.jsp" > Category Page </a>
 
 </body>
 </html>

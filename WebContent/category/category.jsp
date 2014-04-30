@@ -12,6 +12,7 @@
 	<tr>
 		<td>
             <%@ page import="java.sql.*"%>
+            <%@ page import="java.util.*"%>
             <%-- -------- Open Connection Code -------- --%>
             <%
             Connection conn = null;
@@ -37,22 +38,35 @@
 
                     // Begin transaction
                     conn.setAutoCommit(false);
-
-                    // Create the prepared statement and use it to
-                    // INSERT category values INTO the category table.
-                    pstmt = conn
-                    .prepareStatement("INSERT INTO categories (c_name, description) VALUES (?, ?)");
-
-                    //pstmt.setInt(1, Integer.parseInt(request.getParameter("pid")));
-                    //pstmt.setString(2, request.getParameter("first"));
-                    pstmt.setString(1, request.getParameter("c_name"));
-                    pstmt.setString(2, request.getParameter("description"));
                     
-                    int rowCount = pstmt.executeUpdate();
+                    Statement s = conn.createStatement();
+                    rs = s.executeQuery("SELECT * FROM categories WHERE c_name = '" + request.getParameter("c_name") +"'");
+                    
+                    if( request.getParameter("c_name") == ""  || rs.next())
+                	{
+                		out.println("Failure to insert a new category.");
+                		//rs = null;
+                	}
+                    else
+                    {
 
-                    // Commit transaction
-                    conn.commit();
-                    conn.setAutoCommit(true);
+	                    // Create the prepared statement and use it to
+	                    // INSERT category values INTO the category table.
+	                    pstmt = conn
+	                    .prepareStatement("INSERT INTO categories (c_name, description) VALUES (?, ?)");
+	
+	                    //pstmt.setInt(1, Integer.parseInt(request.getParameter("pid")));
+	                    //pstmt.setString(2, request.getParameter("first"));
+	                    pstmt.setString(1, request.getParameter("c_name"));
+	                    pstmt.setString(2, request.getParameter("description"));
+	                    
+	                    int rowCount = pstmt.executeUpdate();
+	
+	                    // Commit transaction
+	                    conn.commit();
+	                    conn.setAutoCommit(true);
+	                    response.sendRedirect("/135Spring/category/category.jsp");
+                    }
                 }
             %>
             
@@ -63,22 +77,31 @@
 
                     // Begin transaction
                     conn.setAutoCommit(false);
-
-                    // Create the prepared statement and use it to
-                    // UPDATE category values in the category table.
-                    pstmt = conn
-                        .prepareStatement("UPDATE categories SET c_name = ?, description = ? WHERE id = ?");
-
                     
-                    pstmt.setString(1, request.getParameter("c_name"));
-                    pstmt.setString(2, request.getParameter("description"));
-                    pstmt.setInt(3, Integer.parseInt(request.getParameter("id")));
-                    
-                    int rowCount = pstmt.executeUpdate();
-
-                    // Commit transaction
-                    conn.commit();
-                    conn.setAutoCommit(true);
+                    if( request.getParameter("c_name") == "" )
+                	{
+                		out.println("Failure to update a new category.");
+                		//rs = null;
+                	}
+                    else
+                    {
+	                    // Create the prepared statement and use it to
+	                    // UPDATE category values in the category table.
+	                    pstmt = conn
+	                        .prepareStatement("UPDATE categories SET c_name = ?, description = ? WHERE id = ?");
+	
+	                    
+	                    pstmt.setString(1, request.getParameter("c_name"));
+	                    pstmt.setString(2, request.getParameter("description"));
+	                    pstmt.setInt(3, Integer.parseInt(request.getParameter("id")));
+	                    
+	                    int rowCount = pstmt.executeUpdate();
+	
+	                    // Commit transaction
+	                    conn.commit();
+	                    conn.setAutoCommit(true);
+	                    response.sendRedirect("/135Spring/category/category.jsp");
+                    }
                 }
             %>
             
@@ -89,18 +112,43 @@
 
                     // Begin transaction
                     conn.setAutoCommit(false);
+                    
+                    int c_id = Integer.parseInt(request.getParameter("id"));
+                    
+                    Statement test = conn.createStatement();
+                    ResultSet delete = null;
+                    Vector<Integer> v = new Vector<Integer>();
+                    
+                    delete = test.executeQuery("");
+                    
+                    while(delete.next())
+                    {
+                    	v.add(delete.getInt("id"));
+                    }
+                    
+                    boolean referenced = false;
+                    for(int i = 0; i < v.size(); i++)
+                    {
+                    	if(v.get(i) == c_id)
+                    	{
+                    		referenced = true;
+                    	}
+                    }
+                    
+                    
 
                     // Create the prepared statement and use it to
                     // DELETE students FROM the Students table.
                     pstmt = conn
                         .prepareStatement("DELETE FROM categories WHERE id = ?");
 
-                    pstmt.setInt(1, Integer.parseInt(request.getParameter("id")));
+                    pstmt.setInt(1, c_id);
                     int rowCount = pstmt.executeUpdate();
 
                     // Commit transaction
                     conn.commit();
                     conn.setAutoCommit(true);
+                    response.sendRedirect("/135Spring/category/category.jsp");
                 }
             %>        
 
@@ -135,7 +183,7 @@
             <%-- -------- Iteration Code -------- --%>
             <%
                 // Iterate over the ResultSet
-                while (rs.next()) {
+                while (rs != null && rs.next()) {
             %>
 
             <tr>
@@ -222,6 +270,8 @@
         </td>
     </tr>
 </table>
+
+<a href="/135Spring/product/product.jsp" > Product Page </a>
 
 </body>
 </html>
