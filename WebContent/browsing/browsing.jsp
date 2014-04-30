@@ -20,7 +20,8 @@
 		<tr>
 			<!-- <form action="/135Spring/product/product.jsp" method="POST"> -->
 			<form action="browsing.jsp" method="POST">
-				<input type="hidden" name="action" value="searchSubmit" /> 
+				<input type="hidden" name="search" value="searchSubmit" /> 
+				<input type="hidden" name="categoryFilter" value="<%= request.getParameter("c_id") %>" />
 				<input value="" name="searchInput" size="15" /> 
 				<input type="submit" value="Search" />
 			</form>
@@ -35,7 +36,10 @@
 			ResultSet rs = null;
 			Statement stmt = null;
 			PreparedStatement d_pstmt = null;
+			PreparedStatement s_pstmt = null;
 			String action = request.getParameter("action");
+			String display = request.getParameter("display");
+			String search = request.getParameter("search");
 
 			try {
 				// Registering Postgresql JDBC driver with the DriverManager
@@ -82,8 +86,9 @@
 			<td><%=c_rs.getInt("id")%></td>
 
 			<form action="browsing.jsp" method="POST">
-				<input type="hidden" name="action" value="displayCategory" /> <input
-					type="hidden" name="c_id" value="<%=c_rs.getInt("id")%>" />
+				<input type="hidden" name="display" value="displayCategory" /> 
+				<input type="hidden" name="c_id" value="<%=c_rs.getInt("id")%>" />
+				<input type="hidden" name="search_text" value="<%=request.getParameter("searchInput") %>" />
 				<td><input type="submit" value="Display" /></td>
 			</form>
 
@@ -99,46 +104,84 @@
 
 		<%-- -------- display category Code -------- --%>
 		<%
-			if (action != null && action.equals("displayCategory")) {
+			//DISPLAY
+			if (display != null && display.equals("displayCategory")) {
 
-					System.out.println("in display mode");
-					// Begin transaction
-					conn.setAutoCommit(false);
-
-					// Create the prepared statement and use it to
-					// INSERT product values INTO the product table.
+	System.out.println("in display mode");
+				// Begin transaction
+                conn.setAutoCommit(false);
+				
+				String searchText = request.getParameter("search_text");
+				
+	//System.out.println("search_text is: " + searchText );
+	
+				//without search text
+				if(searchText.equals("null"))
+				{
 					d_pstmt = conn
-							.prepareStatement("SELECT * FROM products WHERE category_id = ?");
+		                	.prepareStatement("SELECT * FROM products WHERE category_id = ?");
 
-					d_pstmt.setInt(1, Integer.parseInt(request.getParameter("c_id")));
+		                	d_pstmt.setInt(1, Integer.parseInt(request.getParameter("c_id")));	
+				}
+				//with search text
+				else
+				{
+                	d_pstmt = conn
+                	.prepareStatement("SELECT * FROM products WHERE category_id = ? AND p_name LIKE '%" + searchText + "%'");
 
-					rs = d_pstmt.executeQuery();
+                	d_pstmt.setInt(1, Integer.parseInt(request.getParameter("c_id")));
+				}
+                rs = d_pstmt.executeQuery();
 
-					// Commit transaction
-					conn.commit();
-					conn.setAutoCommit(true);
+                // Commit transaction
+                conn.commit();
+                conn.setAutoCommit(true);
 				}
 
-				if (action != null && action.equals("searchSubmit")) {
+			//SEARCH
+			else if (search != null && search.equals("searchSubmit")) {
 
-					//System.out.println("inside search block");
-					// Begin transaction
-					conn.setAutoCommit(false);
+			System.out.println("inside search block");
+	            	// Begin transaction
+	                conn.setAutoCommit(false);
+	            	
+	            	String category = request.getParameter("categoryFilter");
+	        //out.println("category is: " + category);  	
+	          
+	            	String searchInput = request.getParameter("searchInput");
+	                Statement s_stmt = conn.createStatement();
+	               
+	                if(category.equals("null"))
+	                {
+	                	s_pstmt = conn
+	                            .prepareStatement("SELECT * FROM products WHERE p_name LIKE '%" + searchInput + "%'");
+	                }
+	                else
+	                {
+	                	s_pstmt = conn
+	                        .prepareStatement("SELECT * FROM products WHERE category_id = ? AND p_name LIKE '%" + searchInput + "%'");
+	                	s_pstmt.setInt(1, Integer.parseInt(category));
 
-					String searchInput = request.getParameter("searchInput");
-					Statement s_stmt = conn.createStatement();
-
-					pstmt = conn
-							.prepareStatement("SELECT * FROM products WHERE p_name LIKE '%"
-									+ searchInput + "%'");
-
-					//System.out.println(searchInput);
-
-					rs = pstmt.executeQuery();
-
-					conn.commit();
-					conn.setAutoCommit(true);
+	         //System.out.println("search input is: " + searchInput);
+	                        
+	                }
+	                rs = s_pstmt.executeQuery();
+	                
+	                conn.commit();
+	                conn.setAutoCommit(true);
 				}
+		
+			//display all
+			else
+			{
+			System.out.println("in all products mode");
+				Statement statement = conn.createStatement();
+
+            	// Use the created statement to SELECT
+            	// the student attributes FROM the Student table.
+           	 	rs = statement.executeQuery("SELECT * FROM products");
+			
+			}
 		%>
 
 		<table border="1">

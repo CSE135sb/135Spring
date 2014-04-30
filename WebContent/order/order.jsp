@@ -19,8 +19,11 @@
 			Connection conn = null;
 			PreparedStatement pstmt = null;
 			ResultSet rs = null;
+			ResultSet os = null;
 			Statement stmt = null;
 			PreparedStatement d_pstmt = null;
+			PreparedStatement o_pstmt = null;
+			
 			String action = request.getParameter("action");
 
 			try {
@@ -33,7 +36,7 @@
 		%>
 		
 		<%
-		
+		//action was passed in by browsing.jsp 
 		if (action != null && action.equals("orderProduct")) {
 
 			System.out.println("inside orderProduct block");
@@ -72,7 +75,6 @@
 			// Iterate over the ResultSet for insert, update, delete
 			while (rs != null && rs.next()) {
 			%>
-
 			<tr>
 
 				<%-- Get the id --%>
@@ -93,15 +95,97 @@
 				<%-- Get the price --%>
 				<td><input value="<%=rs.getInt("price")%>" name="price"
 					size="15" /></td>
-
-
-				
+		
 			</tr>
 
 			<%
 				}
 			%>
 		</table>
+		
+		<%
+		Statement statement = conn.createStatement();
+
+        // Use the created statement to SELECT
+        // the student attributes FROM the Student table.
+        os = statement.executeQuery("SELECT * FROM cartitems");
+		
+		
+		
+		%>
+		
+		<table border="1">
+		
+		<label>Shopping Cart</label>
+		
+			<tr>
+				<th>ID</th>
+				<th>Product Name</th>
+				<th>Price</th>
+				<th>Amount</th>
+				<th>Owner</th>
+			</tr>
+
+
+			<%
+			while (os != null && os.next()) {
+			%>
+			<tr>
+
+				<%-- Get the id --%>
+				<td><%=os.getInt("id")%></td>
+
+				<%-- Get the p_name --%>
+				<td><%=os.getString("p_name")%></td>
+
+				<%-- Get the price --%>
+				<td><%=os.getInt("price")%></td>
+
+				<%-- Get the amount --%>
+				<td><input value="<%=os.getInt("amount")%>" name="amount" size="10" /></td>
+
+				<%-- Get the owner --%>
+				<td><%=os.getInt("owner")%></td>
+		
+			</tr>
+
+			<%
+				}
+			%>
+		</table>
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
 
 
 		<%-- -------- Close Connection Code -------- --%>

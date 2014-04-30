@@ -132,7 +132,7 @@
                 	
                 	if( price < 0 || request.getParameter("p_name") == "" || rs.next() )
                 	{
-                		out.println("failed to insert a new product.");
+                		out.println("Failure to insert a new product.");
                 		rs = null;
                 	}
                 	
@@ -182,7 +182,7 @@
                 	
                 	if( price < 0 || request.getParameter("p_name") == "" || rs.next() )
                 	{
-                		out.println("failed to insert a new product.");
+                		out.println("Failure to insert a new product.");
                 		rs = null;
                 	}
                 	else {
