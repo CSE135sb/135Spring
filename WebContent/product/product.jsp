@@ -23,7 +23,6 @@
 
 </table>
 
-			
 
 <table>
 	<tr>
@@ -61,10 +60,8 @@
 			String display = request.getParameter("display");
 			String search = request.getParameter("search");
 			
-			
 			%>
             	
-			
 			<%-- display category table on the side --%>
 			<%@ include file="/display_category/display_category.jsp" %>
 			<%-- display category table on the side --%>
@@ -82,7 +79,6 @@
 			<th>Category</th>
 			<th>ID</th>
 		</tr>
-
 
 
 		<%-- -------- Iteration Code -------- --%>
@@ -107,15 +103,11 @@
 
 		</tr>
 
-
 		<%
 			
 				}
 		%>
 		
-		
-			
-
      
             <%-- -------- INSERT Code -------- --%>
             <%
@@ -260,7 +252,7 @@
 				
 				String searchText = request.getParameter("search_text");
 				
-	System.out.println("search_text is: " + searchText );
+	//System.out.println("search_text is: " + searchText );
 	
 				//without search text
 				if(searchText.equals("null"))
@@ -274,7 +266,7 @@
 				else
 				{
                 	d_pstmt = conn
-                	.prepareStatement("SELECT * FROM products WHERE category_id = ? AND p_name = '" + searchText + "'");
+                	.prepareStatement("SELECT * FROM products WHERE category_id = ? AND p_name LIKE '%" + searchText + "%'");
 
                 	d_pstmt.setInt(1, Integer.parseInt(request.getParameter("c_id")));
 				}
@@ -291,14 +283,26 @@
             	// Begin transaction
                 conn.setAutoCommit(false);
             	
+            	String category = request.getParameter("categoryFilter");
+        //out.println("category is: " + category);  	
+          
             	String searchInput = request.getParameter("searchInput");
                 Statement s_stmt = conn.createStatement();
                
-                s_pstmt = conn
-                        .prepareStatement("SELECT * FROM products WHERE p_name LIKE '%" + searchInput + "%'");
+                if(category.equals("null"))
+                {
+                	s_pstmt = conn
+                            .prepareStatement("SELECT * FROM products WHERE p_name LIKE '%" + searchInput + "%'");
+                }
+                else
+                {
+                	s_pstmt = conn
+                        .prepareStatement("SELECT * FROM products WHERE category_id = ? AND p_name LIKE '%" + searchInput + "%'");
+                	s_pstmt.setInt(1, Integer.parseInt(category));
 
-         System.out.println("search input is: " + searchInput);
+         //System.out.println("search input is: " + searchInput);
                         
+                }
                 rs = s_pstmt.executeQuery();
                 
                 conn.commit();
@@ -308,7 +312,7 @@
 			else 
 			{
 				
-				System.out.println("in all products mode");
+		System.out.println("in all products mode");
                 // Create the statement
                 Statement statement = conn.createStatement();
 
