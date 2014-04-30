@@ -11,7 +11,7 @@
 </head>
 <body>
 
-	<h2>This is your shopping cart</h2>
+	<h2>Selected item</h2>
 	
 
 		<%-- -------- Open Connection Code -------- --%>
@@ -25,6 +25,7 @@
 			PreparedStatement o_pstmt = null;
 			
 			String action = request.getParameter("action");
+			String add = request.getParameter("add");
 
 			try {
 				// Registering Postgresql JDBC driver with the DriverManager
@@ -35,6 +36,8 @@
 								+ "user=postgres&password=postgres");
 		%>
 		
+		
+		<%-- Do action passed in by Browsing page --%>
 		<%
 		//action was passed in by browsing.jsp 
 		if (action != null && action.equals("orderProduct")) {
@@ -56,10 +59,10 @@
 			conn.commit();
 			conn.setAutoCommit(true);
 		}
-		
-		
-		
+	
 		%>
+		
+		
 		
 		<table border="1">
 			<tr>
@@ -68,33 +71,41 @@
 				<th>SKU</th>
 				<th>Category</th>
 				<th>Price</th>
+				<th>Amount</th>
 			</tr>
 
 
 			<%
-			// Iterate over the ResultSet for insert, update, delete
+			// Iterate over the PRODUCT item
 			while (rs != null && rs.next()) {
 			%>
 			<tr>
-
+			
+			<form action="order.jsp" method="GET">
+                    <input type="hidden" name="add" value="add_to_cart"/>
+                    <input type="hidden" name="id" value="<%=rs.getInt("id")%>"/>
+			
 				<%-- Get the id --%>
 				<td><%=rs.getInt("id")%></td>
 
 				<%-- Get the p_name --%>
-				<td><input value="<%=rs.getString("p_name")%>" name="p_name"
-					size="15" /></td>
+				<td><input value="<%=rs.getString("p_name")%>" name="p_name" size="15" readonly="true" /></td>
 
 				<%-- Get the sku --%>
-				<td><input value="<%=rs.getInt("sku")%>" name="sku" size="15" />
-				</td>
+				<td><%=rs.getInt("sku")%></td>
 
 				<%-- Get the category_id --%>
-				<td><input value="<%=rs.getInt("category_id")%>" name="sku"
-					size="15" /></td>
+				<td><%=rs.getInt("category_id")%></td>
 
 				<%-- Get the price --%>
-				<td><input value="<%=rs.getInt("price")%>" name="price"
-					size="15" /></td>
+				<td><input value="<%=rs.getInt("price")%>" name="price" size="15" readonly="true" /></td>
+					
+				<%-- Get the amount --%>
+				 <td><input value="" name="amount" size="5"/></td>
+				 
+				 <td><input type="submit" value="Update"/></td>
+				 
+		 </form>
 		
 			</tr>
 
@@ -102,6 +113,59 @@
 				}
 			%>
 		</table>
+		
+		
+		<%-- Add product to cart_Items db --%>
+		<%
+		if (add != null && add.equals("add_to_cart")) {
+
+	System.out.println("inside add_to_cart block");
+			// Begin transaction
+			conn.setAutoCommit(false);
+
+			double price;
+			String input = request.getParameter("id");
+			int id = Integer.parseInt(input);
+			Statement s_stmt = conn.createStatement();
+
+			try
+        	{
+				String p = request.getParameter("price");
+				System.out.println("price is: " + p);
+				
+        		price = Double.parseDouble(request.getParameter("price"));
+        	}
+        	catch (NumberFormatException e)
+        	{
+        		price = -1.0;
+        	}
+        	
+        	if( price < 0  )
+        	{
+        		out.println("Failure to add to cart.");
+        	}
+        	else {
+			pstmt = conn
+                    .prepareStatement("INSERT INTO cartitems (p_name, price, amount, owner) VALUES (?, ?, ?, ?)");
+
+                    pstmt.setString(1, request.getParameter("p_name"));
+                    pstmt.setInt(2, Integer.parseInt(request.getParameter("price")));
+                    pstmt.setInt(3, Integer.parseInt(request.getParameter("amount")));
+                    //TODO: this is a hard code right now
+                    pstmt.setInt(4, 1);//Integer.parseInt(request.getParameter("owner")));
+                    
+                    int rowCount = pstmt.executeUpdate();
+			
+				conn.commit();
+				conn.setAutoCommit(true);
+				//handle duplicate submission
+				//then redirect to browsing page
+				response.sendRedirect("/135Spring/browsing/browsing.jsp");
+        	}
+		}
+		
+		
+		%>
 		
 		<%
 		Statement statement = conn.createStatement();
@@ -114,10 +178,9 @@
 		
 		%>
 		
+		<h3>Shopping Cart</h3>
 		<table border="1">
-		
-		<label>Shopping Cart</label>
-		
+			
 			<tr>
 				<th>ID</th>
 				<th>Product Name</th>
@@ -126,9 +189,10 @@
 				<th>Owner</th>
 			</tr>
 
-
 			<%
-			while (os != null && os.next()) {
+			//	iterate through shopping cart
+			while (os != null && os.next()) 
+			{
 			%>
 			<tr>
 
