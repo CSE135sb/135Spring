@@ -8,6 +8,22 @@
 </head>
 <body>
 <h2>This is a product page </h2>
+
+<label>Search for products</label>
+<table>
+
+		<tr>
+			<form action="product.jsp" method="POST">
+				<input type="hidden" name="action" value="searchSubmit" /> 
+				<input value="" name="searchInput" size="15"/>
+				<input type="submit" value="Search" />
+			</form>
+		</tr>
+
+</table>
+
+			
+
 <table>
 	<tr>
 		<td valign = "top">
@@ -33,11 +49,12 @@
                     "user=postgres&password=postgres");
             %>
             
-            <%-- -------------- Display products in same category code -------------- --%>
+            <%-- -------------- -------------- --%>
 			<%
 			// Create the statement
             Statement c_statement = conn.createStatement();
 			PreparedStatement d_pstmt = null;
+			PreparedStatement s_pstmt = null;
 			String action = request.getParameter("action");
 			
 			
@@ -45,6 +62,10 @@
 			
 			%>
             
+            
+            
+			
+			
             
             <%-- -------- SELECT Statement Code -------- --%>
             <%
@@ -97,6 +118,31 @@
             %>
             
 		</table>
+		
+			<%-- -------- Search Code -------- --%>
+            <%
+                
+                // Check if an insertion is requested
+                if (action != null && action.equals("searchSubmit")) {
+
+           System.out.println("inside search block");
+                	// Begin transaction
+                    conn.setAutoCommit(false);
+                	
+                	String searchInput = request.getParameter("searchInput");
+                    Statement s_stmt = conn.createStatement();
+                   
+                    s_pstmt = conn
+                            .prepareStatement("SELECT * FROM products WHERE p_name LIKE '%" + searchInput + "%'");
+
+               //System.out.println(searchInput);
+                            
+                    rs = s_pstmt.executeQuery();
+                    
+                    conn.commit();
+                    conn.setAutoCommit(true);
+                }
+            %>
 
      
             <%-- -------- INSERT Code -------- --%>
@@ -176,7 +222,7 @@
                 }
             %>        
 
-            <%-- -------- SELECT Statement Code (for all products)-------- --%>
+            <%-- -------- SELECT Statement Code (for different feature)-------- --%>
             <%
 			System.out.println("action is: " + action.toString());
 
@@ -201,7 +247,7 @@
                 conn.setAutoCommit(true);
             }
 			// display all products
-			else if( action != null && !(action.equals("displayCategory")))
+			else if( action != null && !(action.equals("displayCategory")) && !(action.equals("searchSubmit")))
             {
 				System.out.println("in all products mode");
                 // Create the statement
