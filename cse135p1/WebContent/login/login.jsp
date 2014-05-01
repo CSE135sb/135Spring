@@ -19,8 +19,12 @@
             <%
             Connection conn = null;
             PreparedStatement pstmt = null;
-            ResultSet rs = null;
-            Statement stmt = null;
+            ResultSet rs1 = null;
+            ResultSet rs2 = null;
+            ResultSet rs3 = null;
+            Statement stmt1 = null;
+            Statement stmt2 = null;
+            Statement stmt3 = null;
 
             try {
                 // Registering Postgresql JDBC driver with the DriverManager
@@ -35,21 +39,58 @@
             <%-- -------- SUBMIT Code -------- --%>
             <%
                 String action = request.getParameter("action");
-
                 if (action != null && action.equals("loginSubmit")) {
                     conn.setAutoCommit(false);
-                    
-                    String username = request.getParameter("username");
-                    stmt = conn.createStatement();
-                    
-                    rs = stmt.executeQuery("SELECT * FROM users WHERE username = " + username);
-					if (rs == null){
-						session.setAttribute("username",username);
-						response.sendRedirect("/ownermain");
-					}
-                    int rowCount = pstmt.executeUpdate();
 
-                     
+                    String username = request.getParameter("username");
+                    stmt1 = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
+                    		ResultSet.CONCUR_READ_ONLY);
+                    stmt2 = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, 
+                    		ResultSet.CONCUR_READ_ONLY);
+                    stmt3 = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
+                    		ResultSet.CONCUR_READ_ONLY);
+                    rs1 = stmt1.executeQuery("SELECT * FROM owners WHERE username = '" 
+                    		+ username + "'");
+                    rs2 = stmt2.executeQuery("SELECT * FROM customers WHERE username = '" 
+                    		+ username + "'");
+					if (rs1.first()){
+						rs1.beforeFirst();
+						rs3 = stmt3.executeQuery("SELECT owners.id FROM owners WHERE username = '"
+							+ username + "'");
+	                    rs3.next();
+	                  	int id = rs3.getInt("id");
+						session.setAttribute("user_id", id);
+						session.setAttribute("username",username);
+						System.out.println("login.jsp: user id = " 
+							+ session.getAttribute("user_id"));
+						System.out.println("login.jsp: user name = "
+							+ session.getAttribute("username"));
+						response.sendRedirect("category");
+					}else if (rs2.first()){
+						rs2.beforeFirst();
+						rs3 = stmt3.executeQuery("SELECT customers.id FROM customers WHERE username = '" 
+							+ username + "'");
+	                    rs3.next();
+	                  	int id = rs3.getInt("id");
+						session.setAttribute("user_id", id);
+						session.setAttribute("username",username);
+						System.out.println("login.jsp: user id = "
+							+ session.getAttribute("user_id"));
+						System.out.println("login.jsp: user name = "
+							+ session.getAttribute("username"));
+						session.setAttribute("username", username);
+						response.sendRedirect("browsing");
+					}else if (username.isEmpty()){
+						%><b>Please enter a user name. </b>
+						  <a href="login">Retry</a>
+						<%
+						return;
+					}else{
+						%><b>User name does not exist. </b>
+						  <a href="login">Retry</a>
+						<%
+						return;						
+					}
                     conn.commit();
                     conn.setAutoCommit(true);
                 }
@@ -58,11 +99,20 @@
             <%-- -------- Close Connection Code -------- --%>
             <%
                 // Close the ResultSet
-                if (rs != null)
-                	rs.close();
-
                 // Close the Statement
                 //statement.close();
+            if (rs1 != null)
+            	rs1.close();
+            if (rs2 != null)
+            	rs2.close();
+            if (rs3 != null)
+            	rs3.close();
+            if (stmt1 != null)
+            	stmt1.close();
+            if (stmt2 != null)
+            	stmt2.close();
+            if (stmt3 != null)
+            	stmt3.close();
 
                 // Close the Connection
                 if (conn != null)
@@ -76,14 +126,26 @@
             finally {
                 // Release resources in a finally block in reverse-orde: syntax error at end of input
                 // their creation
-
-                if (rs != null) {
+ 
+                if (rs1 != null) {
                     try {
-                        rs.close();
+                        rs1.close();
                     } catch (SQLException e) { } // Ignore
-                    rs = null;
-                }
-                if (pstmt != null) {
+                    rs1 = null;
+                } 
+                if (rs2 != null) {
+                    try {
+                        rs2.close();
+                    } catch (SQLException e) { } // Ignore
+                    rs2 = null;
+                } 
+                if (rs3 != null) {
+                    try {
+                        rs3.close();
+                    } catch (SQLException e) { } // Ignore
+                    rs3 = null;
+                } 
+                 if (pstmt != null) {
                     try {
                         pstmt.close();
                     } catch (SQLException e) { } // Ignore
@@ -108,11 +170,12 @@
 
 
 
-<form action="login/login.jsp" method="POST">
+<form action="login" method="POST">
     <input type="hidden" name="action" value="loginSubmit"/>
 	<input name="username" type="text"/>
 	<br>
 	<input type="submit" name="submitButton" value="Submit"/>
 </form>
+<label>Not a member? </label><a href="signup">Sign up.</a>
 </body>
 </html>

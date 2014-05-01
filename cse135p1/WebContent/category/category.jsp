@@ -12,6 +12,7 @@
 	<tr>
 		<td>
             <%@ page import="java.sql.*"%>
+            <%@ page import="java.util.*"%>
             <%-- -------- Open Connection Code -------- --%>
             <%
             Connection conn = null;
@@ -37,22 +38,35 @@
 
                     // Begin transaction
                     conn.setAutoCommit(false);
-
-                    // Create the prepared statement and use it to
-                    // INSERT category values INTO the category table.
-                    pstmt = conn
-                    .prepareStatement("INSERT INTO category (c_name, description) VALUES (?, ?)");
-
-                    //pstmt.setInt(1, Integer.parseInt(request.getParameter("pid")));
-                    //pstmt.setString(2, request.getParameter("first"));
-                    pstmt.setString(1, request.getParameter("c_name"));
-                    pstmt.setString(2, request.getParameter("description"));
                     
-                    int rowCount = pstmt.executeUpdate();
+                    Statement s = conn.createStatement();
+                    rs = s.executeQuery("SELECT * FROM categories WHERE c_name = '" + request.getParameter("c_name") +"'");
+                    
+                    if( request.getParameter("c_name") == ""  || rs.next())
+                	{
+                		out.println("Failure to insert a new category.");
+                		//rs = null;
+                	}
+                    else
+                    {
 
-                    // Commit transaction
-                    conn.commit();
-                    conn.setAutoCommit(true);
+	                    // Create the prepared statement and use it to
+	                    // INSERT category values INTO the category table.
+	                    pstmt = conn
+	                    .prepareStatement("INSERT INTO categories (c_name, description) VALUES (?, ?)");
+
+	                    //pstmt.setInt(1, Integer.parseInt(request.getParameter("pid")));
+	                    //pstmt.setString(2, request.getParameter("first"));
+	                    pstmt.setString(1, request.getParameter("c_name"));
+	                    pstmt.setString(2, request.getParameter("description"));
+
+	                    int rowCount = pstmt.executeUpdate();
+
+	                    // Commit transaction
+	                    conn.commit();
+	                    conn.setAutoCommit(true);
+	                    response.sendRedirect("category");
+                    }
                 }
             %>
             
@@ -63,22 +77,31 @@
 
                     // Begin transaction
                     conn.setAutoCommit(false);
-
-                    // Create the prepared statement and use it to
-                    // UPDATE category values in the category table.
-                    pstmt = conn
-                        .prepareStatement("UPDATE category SET c_name = ?, description = ? WHERE id = ?");
-
                     
-                    pstmt.setString(1, request.getParameter("c_name"));
-                    pstmt.setString(2, request.getParameter("description"));
-                    pstmt.setInt(3, Integer.parseInt(request.getParameter("id")));
-                    
-                    int rowCount = pstmt.executeUpdate();
+                    if( request.getParameter("c_name") == "" )
+                	{
+                		out.println("Failure to update a new category.");
+                		//rs = null;
+                	}
+                    else
+                    {
+	                    // Create the prepared statement and use it to
+	                    // UPDATE category values in the category table.
+	                    pstmt = conn
+	                        .prepareStatement("UPDATE categories SET c_name = ?, description = ? WHERE id = ?");
 
-                    // Commit transaction
-                    conn.commit();
-                    conn.setAutoCommit(true);
+
+	                    pstmt.setString(1, request.getParameter("c_name"));
+	                    pstmt.setString(2, request.getParameter("description"));
+	                    pstmt.setInt(3, Integer.parseInt(request.getParameter("id")));
+
+	                    int rowCount = pstmt.executeUpdate();
+
+	                    // Commit transaction
+	                    conn.commit();
+	                    conn.setAutoCommit(true);
+	                    response.sendRedirect("category");
+                    }
                 }
             %>
             
@@ -89,18 +112,48 @@
 
                     // Begin transaction
                     conn.setAutoCommit(false);
+                    
+                    int c_id = Integer.parseInt(request.getParameter("id"));
+                    
+                    Statement test = conn.createStatement();
+                    ResultSet delete = null;
+                    Vector<Integer> v = new Vector<Integer>();
+                    
+                    delete = test.executeQuery("SELECT c.id FROM categories c, products p WHERE c.id = p.category_id");
+                    
+                    while(delete.next())
+                    {
+                    	v.add(delete.getInt("id"));
+                    }
+                    
+                    boolean referenced = false;
+                    for(int i = 0; i < v.size(); i++)
+                    {
+                    	if(v.get(i) == c_id)
+                    	{
+                    		referenced = true;
+                    	}
+                    }
+                    
+                    if(referenced)
+                    {
+                    	out.println("Cannot delete this category. Someone just added a product to it. ");
+                    }
+                    else
+                    { 
+	                    // Create the prepared statement and use it to
+	                    // DELETE students FROM the Students table.
+	                    pstmt = conn
+	                        .prepareStatement("DELETE FROM categories WHERE id = ?");
 
-                    // Create the prepared statement and use it to
-                    // DELETE students FROM the Students table.
-                    pstmt = conn
-                        .prepareStatement("DELETE FROM category WHERE id = ?");
+	                    pstmt.setInt(1, c_id);
+	                    int rowCount = pstmt.executeUpdate();
 
-                    pstmt.setInt(1, Integer.parseInt(request.getParameter("id")));
-                    int rowCount = pstmt.executeUpdate();
-
-                    // Commit transaction
-                    conn.commit();
-                    conn.setAutoCommit(true);
+	                    // Commit transaction
+	                    conn.commit();
+	                    conn.setAutoCommit(true);
+	                    response.sendRedirect("category");
+                    }
                 }
             %>        
 
@@ -111,7 +164,7 @@
 
                 // Use the created statement to SELECT
                 // the student attributes FROM the Student table.
-                rs = statement.executeQuery("SELECT * FROM category");
+                rs = statement.executeQuery("SELECT * FROM categories");
             %>
             
             <!-- Add an HTML table header row to format the results -->
@@ -123,7 +176,7 @@
             </tr>
 
             <tr>
-                <form action="category.jsp" method="POST">
+                <form action="category" method="POST">
                     <input type="hidden" name="action" value="insertCategory"/>
                     <th>&nbsp;</th>
                     <th><input value="" name="c_name" size="10"/></th>
@@ -135,11 +188,11 @@
             <%-- -------- Iteration Code -------- --%>
             <%
                 // Iterate over the ResultSet
-                while (rs.next()) {
+                while (rs != null && rs.next()) {
             %>
 
             <tr>
-                <form action="category.jsp" method="POST">
+                <form action="category" method="POST">
                     <input type="hidden" name="action" value="updateCategory"/>
                     <input type="hidden" name="id" value="<%=rs.getInt("id")%>"/>
 
@@ -163,13 +216,41 @@
                 
                 </form>
                 
+                <%
+                	//do checking. if category has products referenced, hide the delete button
+                	Statement test = conn.createStatement();
+               	 	ResultSet delete = null;
+                	Vector<Integer> v = new Vector<Integer>();
+                	
+					delete = test.executeQuery("SELECT c.id FROM categories c, products p WHERE c.id = p.category_id");
+                    
+                    while(delete.next())
+                    {
+                    	v.add(delete.getInt("id"));
+                    }
+                    
+                    boolean referenced = false;
+                    for(int i = 0; i < v.size(); i++)
+                    {
+                    	if(v.get(i) == rs.getInt("id"))
+                    	{
+                    		referenced = true;
+                    	}
+                    }
+                    
+                    //if its not referenced, display Delete button
+                    if( !referenced )
+                    {
+                %>
+	                <form action="category" method="POST">
+	                    <input type="hidden" name="action" value="deleteCategory"/>
+	                    <input type="hidden" value="<%=rs.getInt("id")%>" name="id"/>
+	                    <%-- Button --%>
+	                <td><input type="submit" value="Delete"/></td>
+	                </form>
                 
-                <form action="category.jsp" method="POST">
-                    <input type="hidden" name="action" value="deleteCategory"/>
-                    <input type="hidden" value="<%=rs.getInt("id")%>" name="id"/>
-                    <%-- Button --%>
-                <td><input type="submit" value="Delete"/></td>
-                </form>
+                <% } %>	
+                
             </tr>
 
             <%
@@ -222,6 +303,8 @@
         </td>
     </tr>
 </table>
+
+<a href="product" > Product Page </a>
 
 </body>
 </html>
