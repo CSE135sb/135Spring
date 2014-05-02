@@ -10,9 +10,14 @@
 
 </head>
 <body>
-
-	<h2>This is a product browsing page</h2>
-	<h3>Hello, <%= session.getAttribute( "username" ) %></h3>
+              	<%if (session.getAttribute("role").equals("owner"))
+              	{
+              		out.println("Sorry! You don't have the permissions to view this page.");
+              	}
+              	if (session.getAttribute("role").equals("customer")){
+				%>
+	<h2>Browse products</h2>
+	<h3>Hello, <%= session.getAttribute( "username" ) %>! </h3>
 
 
 	<label>Search for products</label>
@@ -129,7 +134,7 @@
 				{
                 	d_pstmt = conn
                 	.prepareStatement("SELECT * FROM products WHERE category_id = ? AND p_name LIKE '%" + searchText + "%'");
-
+                	
                 	d_pstmt.setInt(1, Integer.parseInt(request.getParameter("c_id")));
 				}
                 rs = d_pstmt.executeQuery();
@@ -193,38 +198,28 @@
 				<th>Category</th>
 				<th>Price</th>
 			</tr>
-
-
 			<%
 				// Iterate over the ResultSet for insert, update, delete
 					while (rs != null && rs.next()) {
 			%>
-
 			<tr>
-
 				<%-- Get the id --%>
 				<td><%=rs.getInt("id")%></td>
-
 				<%-- Get the p_name --%>
 			 	<td><input value="<%=rs.getString("p_name")%>" name="p_name"
 					size="15" /></td>
-
 				<%-- Get the sku --%>
 				<td><input value="<%=rs.getInt("sku")%>" name="sku" size="15" />
 				</td>
-
 				<%-- Get the category_id --%>
 				<td><input value="<%=rs.getInt("category_id")%>" name="sku"
 					size="15" /></td>
-
 				<%-- Get the price --%>
 				<td><input value="<%=rs.getInt("price")%>" name="price"
 					size="15" /></td>
-
-
 				<form action="order" method="POST">
-					<input type="hidden" name="action" value="orderProduct" /> <input
-						type="hidden" value="<%=rs.getInt("id")%>" name="id" />
+					<input type="hidden" name="action" value="orderProduct" /> 
+					<input type="hidden" value="<%=rs.getInt("id")%>" name="id" />
 					<input type="hidden" value="<%=rs.getString("p_name")%>" name="p_name" /> 
 					<%-- Button --%>
 					<td><input type="submit" value="Add to Cart" /></td>
@@ -280,10 +275,7 @@
 				}
 			}
 		%>
-
-<a href="product" > Product Page</a>
-<br>
 <a href="cart" > My Shopping Cart</a>
-
+<%} %>
 </body>
 </html>

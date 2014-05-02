@@ -7,8 +7,15 @@
 <title>product Page</title>
 </head>
 <body>
-<h2>This is a product page </h2>
-<h3>Hello, <%= session.getAttribute( "username" ) %></h3>
+
+<%
+if (session.getAttribute("role").equals("customer")){
+	out.println("Sorry! You don't have the permissions to view this page.");
+}
+if (session.getAttribute("role").equals("owner")){
+%>
+<h2>Products</h2>
+<h3>Hello, <%= session.getAttribute( "username" ) %>! </h3>
 
 <label>Search for products</label>
 <table>
@@ -38,7 +45,11 @@
             ResultSet rs = null;
             
             ResultSet d_rs = null;
+            ResultSet rs2 = null;
+            ResultSet rs3 = null;
             Statement stmt = null;
+            Statement stmt1 = null;
+            Statement stmt2 = null;
 
             try {
                 // Registering Postgresql JDBC driver with the DriverManager
@@ -113,52 +124,56 @@
             <%-- -------- INSERT Code -------- --%>
             <%
                 
-                // Check if an insertion is requested
-                if (action != null && action.equals("insertProduct")) {
-                	
-       System.out.println("in insert block.");
-                	double price;
-                	
-                	stmt = conn.createStatement();
-                	rs = stmt.executeQuery("SELECT * FROM products WHERE sku = " + request.getParameter("sku"));
-                	
-                	try
-                	{
-                		price = Double.parseDouble(request.getParameter("price"));
-                	}
-                	catch (NumberFormatException e)
-                	{
-                		price = -1.0;
-                	}
-                	
-                	if( price < 0 || request.getParameter("p_name") == "" || rs.next() )
-                	{
-                		out.println("Failure to insert a new product.");
-                		rs = null;
-                	}
-                	
-                	else {
-	                    // Begin transaction
-	                    conn.setAutoCommit(false);
+            if (action != null && action.equals("insertProduct")) {
 
-	                    // Create the prepared statement and use it to
-	                    // INSERT product values INTO the product table.
-	                    pstmt = conn
-	                    .prepareStatement("INSERT INTO products (p_name, sku, category_id, price) VALUES (?, ?, ?, ?)");
+        		System.out.println("in insert block.");
+        				double price = 0;
+        								
+        				String sku = request.getParameter("sku");
+        				String name = request.getParameter("p_name");
+        				if(sku != "")
+        				{
 
-	                    pstmt.setString(1, request.getParameter("p_name"));
-	                    pstmt.setInt(2, Integer.parseInt(request.getParameter("sku")));
-	                    pstmt.setInt(3, Integer.parseInt(request.getParameter("category_id")));
-	                    pstmt.setInt(4, Integer.parseInt(request.getParameter("price")));
+        					stmt = conn.createStatement();
+        					rs = stmt
+        						.executeQuery("SELECT * FROM products WHERE sku = "+ sku);
+        	
+        					try {
+        						price = Double.parseDouble(request.getParameter("price"));
+        						} catch (NumberFormatException e) {
+        							price = -1.0;
+        						}
+        					}
 
-	                    int rowCount = pstmt.executeUpdate();
+        				else if (price < 0 || name == "" || sku == "" || rs.next()) {
+        		System.out.println("in if");
+        					out.println("Failure to insert a new product.");
+        					rs = null;
+        				}
 
-	                    // Commit transaction
-	                    conn.commit();
-	                    conn.setAutoCommit(true);
-	                    response.sendRedirect("product");
-                	}
-                }
+        				else {
+        		System.out.println("in else");
+        					// Begin transaction
+        					conn.setAutoCommit(false);
+
+        					// Create the prepared statement and use it to
+        					// INSERT product values INTO the product table.
+        					pstmt = conn
+        						.prepareStatement("INSERT INTO products (p_name, sku, category_id, price) VALUES (?, ?, ?, ?)");
+
+        					pstmt.setString(1, request.getParameter("p_name"));
+        					pstmt.setInt(2,Integer.parseInt(request.getParameter("sku")));
+        					pstmt.setInt(3, Integer.parseInt(request.getParameter("category_id")));
+        					pstmt.setInt(4,Integer.parseInt(request.getParameter("price")));
+
+        					int rowCount = pstmt.executeUpdate();
+
+        					// Commit transaction
+        					conn.commit();
+        					conn.setAutoCommit(true);
+        					response.sendRedirect("product");
+        					}
+        				}
             %>
             
             <%-- -------- UPDATE Code -------- --%>
@@ -184,7 +199,7 @@
                 	
                 	if( price < 0 || request.getParameter("p_name") == "" || rs.next() )
                 	{
-                		out.println("Failure to insert a new product.");
+                		out.println("Failure to update a product.");
                 		rs = null;
                 	}
                 	else {
@@ -292,7 +307,7 @@
           
             	String searchInput = request.getParameter("searchInput");
                 Statement s_stmt = conn.createStatement();
-               
+                
                 if(category.equals("null"))
                 {
                 	s_pstmt = conn
@@ -378,7 +393,31 @@
                 
                 <%-- Get the category_id --%>
                 <td>
-                    <input value="<%=rs.getInt("category_id")%>" name="cid" size="15"/>
+                	<select name="cid">
+                	<% 
+                		stmt1 = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, 
+                        		ResultSet.CONCUR_READ_ONLY);
+                		stmt2 = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, 
+                        		ResultSet.CONCUR_READ_ONLY);
+						conn.setAutoCommit(false);
+						rs2 = stmt1.executeQuery("SELECT * FROM categories WHERE ID = '"
+							+ rs.getInt("category_id") + "'");
+						if (rs2.first()){
+					%>
+						<option selected="true" value='<%=rs2.getInt("id")%>'><%=rs2.getString("c_name")%></option>
+					<%
+						}
+						rs3 = stmt2.executeQuery("SELECT * FROM categories WHERE id != '"
+							+ rs.getInt("category_id") + "'");
+						while (rs3.next()){
+					%>
+						<option value='<%=rs3.getString("id")%>'><%=rs3.getString("c_name")%></option>
+					<%
+						}
+                        conn.commit();
+                        conn.setAutoCommit(true);
+                	%>
+                    </select>
                 </td>
                 
                 <%-- Get the price --%>
@@ -409,7 +448,9 @@
                 // Close the ResultSet
                 if (rs != null)
                 	rs.close();
-            
+            if (rs2 != null)
+            	rs2.close();
+           
             	if (c_rs != null)
 					c_rs.close();
 
@@ -439,6 +480,13 @@
                     rs = null;
                 }
                 
+                if (rs2 != null) {
+                    try {
+                        rs2.close();
+                    } catch (SQLException e) { } // Ignore
+                    rs2 = null;
+                }
+                
                                
                 if (pstmt != null) {
                     try {
@@ -459,9 +507,7 @@
     </tr>
 </table>
 
-<a href="browsing" > Product Browsing Page </a>
-<br>
-<a href="browsing" > Category Page </a>
-
+<a href="category" > Category Page </a>
+<%} %>
 </body>
 </html>

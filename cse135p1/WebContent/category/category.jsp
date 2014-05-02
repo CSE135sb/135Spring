@@ -7,7 +7,8 @@
 <title>Category Page</title>
 </head>
 <body>
-<h2>This is a category page</h2>
+<h2>Product Categories</h2>
+<h3>Hello, <%= session.getAttribute( "username" ) %>! </h3>
 <table>
 	<tr>
 		<td>

@@ -29,6 +29,11 @@
 			String add = request.getParameter("add");
 
 			try {
+              	if (session.getAttribute("role").equals("owner"))
+              	{
+              		out.println("Sorry! You don't have the permissions to view this page.");
+              	}
+              	if (session.getAttribute("role").equals("customer")){
 				// Registering Postgresql JDBC driver with the DriverManager
 				Class.forName("org.postgresql.Driver");
 				// Open a connection to the database using DriverManager
@@ -47,11 +52,11 @@
 			// Begin transaction
 			conn.setAutoCommit(false);
 
-			String input = request.getParameter("p_name");
+			String product_id = request.getParameter("id");
 			Statement s_stmt = conn.createStatement();
 
 			pstmt = conn
-					.prepareStatement("SELECT * FROM products WHERE p_name = '" + input + "'");
+					.prepareStatement("SELECT * FROM products WHERE id = '" + product_id + "'");
 
 			//System.out.println(searchInput);
 
@@ -147,13 +152,16 @@
         	}
         	else {
 				pstmt = conn
-                    .prepareStatement("INSERT INTO cart_items (p_name, price, amount, owner) VALUES (?, ?, ?, ?)");
-
+                    .prepareStatement("INSERT INTO cart_items (p_name, price, amount, owner, product_id) VALUES (?, ?, ?, ?, ?)");
                 pstmt.setString(1, request.getParameter("p_name"));
                 pstmt.setInt(2, Integer.parseInt(request.getParameter("price")));
                 pstmt.setInt(3, Integer.parseInt(request.getParameter("amount")));
                 pstmt.setInt(4, (Integer)(session.getAttribute("user_id")));
+                pstmt.setInt(5, id);
+                System.out.println("product id = " + id);
+				System.out.println("FLAG1");
                 int rowCount = pstmt.executeUpdate();
+				System.out.println("FLAG2");
 				conn.commit();
 				conn.setAutoCommit(true);
 				//handle duplicate submission
@@ -161,21 +169,15 @@
 				response.sendRedirect("browsing");
         	}
 		}
-
-
-		%>
-
-		<%
 		Statement statement = conn.createStatement();
 
         // Use the created statement to SELECT
         // the student attributes FROM the Student table.
-        os = statement.executeQuery("SELECT * FROM cart_items");
-
-
+        os = statement.executeQuery("SELECT * FROM cart_items WHERE owner = '" 
+        	+ session.getAttribute("user_id") + "'");
+		System.out.println("FLAG3");
 
 		%>
-
 		<h3>Shopping Cart</h3>
 		<table border="1">
 
@@ -213,6 +215,7 @@
 
 			<%
 				}
+              	}
 			%>
 		</table>
 

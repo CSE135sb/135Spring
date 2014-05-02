@@ -61,10 +61,13 @@
 	                  	int id = rs3.getInt("id");
 						session.setAttribute("user_id", id);
 						session.setAttribute("username",username);
+						session.setAttribute("role", "owner");
 						System.out.println("login.jsp: user id = " 
 							+ session.getAttribute("user_id"));
 						System.out.println("login.jsp: user name = "
 							+ session.getAttribute("username"));
+						System.out.println("login.jsp: role = "
+								+ session.getAttribute("role"));
 						response.sendRedirect("category");
 					}else if (rs2.first()){
 						rs2.beforeFirst();
@@ -74,10 +77,13 @@
 	                  	int id = rs3.getInt("id");
 						session.setAttribute("user_id", id);
 						session.setAttribute("username",username);
+						session.setAttribute("role", "customer");
 						System.out.println("login.jsp: user id = "
 							+ session.getAttribute("user_id"));
 						System.out.println("login.jsp: user name = "
-							+ session.getAttribute("username"));
+								+ session.getAttribute("username"));
+						System.out.println("login.jsp: role = "
+								+ session.getAttribute("role"));
 						session.setAttribute("username", username);
 						response.sendRedirect("browsing");
 					}else if (username.isEmpty()){

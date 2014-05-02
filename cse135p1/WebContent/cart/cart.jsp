@@ -8,7 +8,7 @@
 </head>
 <body>
 <h2>My shopping cart</h2>
-<h3>Hello, <%= session.getAttribute( "username" ) %></h3>
+<h3>Hello, <%= session.getAttribute( "username" )%>! </h3>
 
 <!-- Cart item detail -->
 <table border="1">
@@ -23,11 +23,17 @@
             PreparedStatement pstmt2 = null;
             ResultSet rs1 = null;
             ResultSet rs2 = null;
+            ResultSet rs3 = null;
             Statement stmt1 = null;
             Statement stmt2 = null;
             Statement stmt3 = null;
             try {
-                // Registering Postgresql JDBC driver with the DriverManager
+              	if (session.getAttribute("role").equals("owner"))
+              	{
+              		out.println("Sorry! You don't have the permissions to view this page.");
+              	}
+              	if (session.getAttribute("role").equals("customer")){
+               // Registering Postgresql JDBC driver with the DriverManager
                 Class.forName("org.postgresql.Driver");
 
                 // Open a connection to the database using DriverManager
@@ -78,14 +84,14 @@
                     try{
                     	Integer.parseInt(request.getParameter("cardNumber"));
                     }catch(NumberFormatException e){
-						%><p style="color:red;">Please provide a valid card number.</p>
-						  <a href="cart">Retry</a>
-						<%
+                    	System.out.println("FLAG1");
+						out.println("Please provide a valid card number.");
 						response.sendRedirect("cart");
 						return;
                     }
                     if (!(request.getParameter("cardNumber").isEmpty())){
                     	//TRANSFER FROM cart_items TO purchased_items
+                    	System.out.println("FLAG2");
                     	stmt2 = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
                     			ResultSet.CONCUR_READ_ONLY);
 						rs2 = stmt2.executeQuery("SELECT * FROM cart_items WHERE owner = '"
@@ -94,25 +100,43 @@
 						int ordered_amount;
 						double ordered_price;
 						int ordered_owner_id;
+						int ordered_product_id;
+                    	System.out.println("FLAG3");
                     	while(rs2.next()){
+                        	System.out.println("FLAG4");
                     		ordered_p_name = rs2.getString("p_name");
                     		ordered_amount = rs2.getInt("amount");
                     		ordered_price = rs2.getDouble("price");
                     		ordered_owner_id = rs2.getInt("owner");
-							pstmt = conn
-							.prepareStatement("INSERT INTO purchased_items (p_name, price, amount, owner) VALUES (?, ?, ?, ?)");
-							pstmt.setString(1, ordered_p_name);
-							pstmt.setDouble(2, ordered_price);
-							pstmt.setInt(3, ordered_amount);
-							pstmt.setInt(4, ordered_owner_id);
+                    		ordered_product_id = rs2.getInt("product_id");
+                        	System.out.println("FLAG5");
+                    		pstmt = conn.
+                    				prepareStatement("SELECT products.id FROM products WHERE id = '" + ordered_product_id +"'");
+                    		rs3 = pstmt.executeQuery();
+                        	System.out.println("FLAG6");
+                    		if (rs3 != null){
+                            	System.out.println("FLAG7");
+								pstmt = conn
+									.prepareStatement("INSERT INTO purchased_items (p_name, price, amount, owner) VALUES (?, ?, ?, ?)");
+								pstmt.setString(1, ordered_p_name);
+								pstmt.setDouble(2, ordered_price);
+								pstmt.setInt(3, ordered_amount);
+								pstmt.setInt(4, ordered_owner_id);
+                    		}else{
+	                           	System.out.println("FLAG8");
+	                    			out.println("Sorry, product '" + ordered_p_name + "' has already been deleted by owner");
+	                    			response.sendRedirect("cart");
+	                     		}
                     	}
 						pstmt.executeUpdate();
+                    	System.out.println("FLAG9");
  				
                     	//DELETE FROM cart_items
                     	pstmt2 = conn.prepareStatement("DELETE FROM cart_items WHERE owner = '"
                     		+ session.getAttribute("user_id") + "'");
     					pstmt2.executeUpdate();
 
+                    	System.out.println("FLAG10");
                     	//TRANSFER USER TO CONFIRMATION PAGE
  	                    conn.commit();
  						conn.setAutoCommit(true);
@@ -123,6 +147,8 @@
 	                rs1.close();
 	            if (rs2 != null)
 	                rs2.close();
+	            if (rs3 != null)
+	                rs3.close();
 				if (stmt1 != null)
 					stmt1.close();
 				if (stmt2 != null)
@@ -131,6 +157,7 @@
 					stmt3.close();
 	            if (conn != null)
 	                conn.close();
+              	}
 	        }catch (SQLException e){
 	            // Wrap the SQL exception in a runtime exception to propagate
 	            // it upwards
@@ -150,6 +177,12 @@
 	                    rs2.close();
 	                } catch (SQLException e) { } // Ignore
 	                rs2 = null;
+	            }
+	            if (rs3 != null) {
+	                try {
+	                    rs3.close();
+	                } catch (SQLException e) { } // Ignore
+	                rs3 = null;
 	            }
 	            if (pstmt != null) {
 	                try {
@@ -180,5 +213,6 @@
 	<input type="text" name="cardNumber"/>
 	<input type="submit" name="orderButton" value="Purchase"/>
 </form>
+<a href="browsing">Continue browsing</a>
 </body>
 </html>

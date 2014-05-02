@@ -23,21 +23,22 @@ CREATE TABLE products(
   p_name    TEXT,
   sku           INTEGER UNIQUE,
   category_id   INTEGER REFERENCES categories (ID) NOT NULL,
-  price     DOUBLE PRECISION
+  price     REAL
 );
 
 CREATE TABLE cart_items(
   id     SERIAL PRIMARY KEY,
   p_name  TEXT,
-  price   DOUBLE PRECISION,
+  price   REAL,
   amount  INTEGER,
-  owner   INTEGER REFERENCES customers (ID) NOT NULL
+  owner   INTEGER REFERENCES customers (ID) NOT NULL,
+  product_id  INTEGER REFERENCES products (ID) NOT NULL
 );
 
 CREATE TABLE purchased_items(
   id     SERIAL PRIMARY KEY,
   p_name  TEXT,
-  price   DOUBLE PRECISION,
+  price   REAL,
   amount  INTEGER,
   owner   INTEGER REFERENCES customers (ID) NOT NULL
 );
