@@ -150,7 +150,7 @@
         		amount = -1.0;
         	}
         	
-        	if( amount <= 0 )
+        	if( amount <= 0 || amount != (long)amount )
         	{
         		out.println("Failure to add to cart.");
         	%>
